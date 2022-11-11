@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import { BetService } from "./bet/bet.service";
-import { BetController } from "./bet/bet.controller";
+
 import { BetModule } from "./bet/bet.module";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
 @Module({
     imports: [
@@ -10,8 +10,22 @@ import { ConfigModule } from "@nestjs/config";
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => ({
+                autoLoadEntities: true,
+                synchronize: true,
+                type: "postgres",
+                host: configService.get("DB_HOST"),
+                port: configService.get("DB_PORT"),
+                username: configService.get("DB_USERNAME"),
+                password: configService.get("DB_PASSWORD"),
+                database: configService.get("DB_DATABASE"),
+            }),
+        }),
     ],
-    controllers: [BetController],
-    providers: [BetService],
+    controllers: [],
+    providers: [],
 })
 export class AppModule {}
